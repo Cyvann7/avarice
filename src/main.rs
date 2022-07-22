@@ -8,7 +8,7 @@ use std::io::Write;
 static VERBOSE: bool = false;
 
 //?  File path to interpret.
-static PATH: &'static str = "./source.avrc";
+static PATH: &'static str = "src/examples/1234.avrc";
 
 //?  Maximum number of operations.
 static MAX: u128 = 65536;
@@ -23,29 +23,47 @@ enum State {
 	Stack,
 	Arithmetic,
 }
-
 #[derive(Clone, PartialEq, Eq, Hash, Copy)]
 struct Operation {
 	op: char,
 	pos: (i32,i32)
 }
-
 impl fmt::Debug for Operation {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		write!(f, "OP('{}' at {:?})", self.op, self.pos)
 	}
 }
 
-
-
 fn main() {
 	let args: Vec<String> = std::env::args().collect();
+	
 	let mut verbose = VERBOSE;
-	for a in args {
-		if a == "--v" || a == "--verbose" { verbose = true }
+	let mut path = PATH;
+	let mut max = MAX;
+
+	let mut argiter = args.iter();
+	loop {
+		if let Some(argument) = argiter.next() {
+			match argument.as_str() {
+				"-p" | "-path"=> {
+					let p = argiter.next().expect("No Argument given to -path");
+					path = p;
+				},
+				"-v" | "-verbose" => {
+					verbose = true;
+				},
+				"-m" | "-max" => {
+					let m = argiter.next().expect("No Argument given to -path");
+					max = m.split_whitespace().collect::<String>().parse::<u128>().expect("-max could not find a number");
+				}
+				_ => {}
+			}
+		} else {
+			break;
+		}
 	}
 
-	let program = source_path_to_grid(PATH);
+	let program = source_path_to_grid(path);
 	
 	println!("{}{}|Program|{}", "\n".repeat(2), "=".repeat(15),"=".repeat(15));
 	for line in program.iter() {
@@ -54,7 +72,7 @@ fn main() {
 	println!("{}{}|Running|{}", "\n".repeat(2), "=".repeat(15),"=".repeat(15));
 	
 	let mut output_buffer = String::new();
-	let res = interpret_program(program, &mut output_buffer, verbose);
+	let res = interpret_program(program, &mut output_buffer, verbose, max);
 	
 	println!("{}{}|Outputs|{}", "\n".repeat(2), "=".repeat(15),"=".repeat(15));
 	println!("{}", output_buffer);
@@ -83,7 +101,7 @@ fn source_path_to_grid(src_path: &str) -> Vec<Vec<char>>{
 	return linebychars;
 } 
 
-fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, verbose: bool) -> isize{
+fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, verbose: bool, max: u128) -> isize{
 
 	let first_op = Operation {
 		op: source_code[0][0],
@@ -94,7 +112,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 	opstack.push_back(first_op);
 
 	let mut numstack: Vec<char> = Vec::new();
-	let mut current_values: Vec<u32> = Vec::new();
+	let mut current_values: Vec<i32> = Vec::new();
 
 	let mut program_state = State::Normal;
 	let mut c = 0;
@@ -200,7 +218,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 			println!("STATE: {:?}\nOPSTACK: {:#?}\nVISITED: {:#?}\nFORMING-NUMBER: {:#?}\nNUMSTACK: {:#?}\n", program_state, opstack, visited,numstack, current_values);
 		}
 		c+=1; 
-		if c == MAX { return 2 }
+		if c == max { return 2 }
 		match program_state {
 			State::Normal => {
 				let opera = opstack.pop_front();
@@ -246,7 +264,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 					'i' => { 
 						print!("INPUT >>> ");
 						stdout().lock().flush().ok();
-						current_values.push(get_user_input_as_u32());
+						current_values.push(get_user_input_as_i32());
 						push_neighbours!(op.pos.0, op.pos.1);
 					},
 					'P' => { 
@@ -412,7 +430,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 						push_neighbours!(op.pos.0, op.pos.1);
 					},
 					'&' => {
-						if let Ok(x) =  numstack.iter().collect::<String>().parse::<u32>() {
+						if let Ok(x) =  numstack.iter().collect::<String>().parse::<i32>() {
 							numstack = Vec::new();
 							push_neighbours!(op.pos.0, op.pos.1);
 							current_values.push(x);
@@ -474,15 +492,13 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 	};
 }
 
-
-
-fn get_user_input_as_u32() -> u32 {
-    let mut number:u32 = 0;
+fn get_user_input_as_i32() -> i32 {
+    let mut number:i32 = 0;
     let mut entered = false;
     while !entered {
         let mut input = String::new();
         stdin().read_line(&mut input).ok().expect("Failed to read line");
-        let answer = input.split_whitespace().collect::<String>().parse::<u32>();
+        let answer = input.split_whitespace().collect::<String>().parse::<i32>();
         match answer {
             Ok(int) => {
                 entered = true;
