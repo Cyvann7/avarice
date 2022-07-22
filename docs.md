@@ -7,7 +7,9 @@
 - [**Order of Operations**](#order-of-operations)
 - [**Loops**](#loops)
 - [**Operations**](#operations)
-		- [**Mode STD**](#mode-std)
+		- [**Mode: STD**](#mode-std)
+		- [**Mode: Stack**](#mode-stack)
+		- [**Mode: Arithmetic**](#mode-arithmetic)
 - [**Return Codes**](#return-codes)
 
 <br>
@@ -42,7 +44,7 @@ This program does nothing. The water flows from S to T in a straight line. Rathe
 S--#65&#--P--T
 ```
 
-Scary new operators! But first, let's talk about "Modes". Avarice operations are divided into *"modes"* that change what a characters does based on which mode you are in. Here, we use the '#' to enter **Number** mode. In number mode, each digit you type is pushed into a number, then when a '&' ("Ampersand") symbol is encountered, it pushes the complete number into the numstack.
+Scary new operators! But first, let's talk about "Modes". Avarice operations are divided into *"modes"* that change what a characters does based on which mode you are in. Here, we use the '#' to enter **Stack** mode. In stack mode, each digit you type is pushed into a number, then when a '&' ("Ampersand") symbol is encountered, it pushes the complete number into the stack.
 
 Note that since the program can progress in any order, the number itself can also be in any [order](#order-of-operations), that is:
 
@@ -53,7 +55,7 @@ S        +-#
  3&#      &3# <- note that the ampersand is hit first here as there is an order that the items are popped from the opqueue
 ```
 
-In this case, we first see S going into a #. We are now in number mode.We then see a 6. now we have the number, "6". Then theres a 5. We haven't seen an ampersand yet, so the 5 is added to the end of the 6. We now have "65". Now here's the &. So we take that "65", make it the *number* 65 and throw it onto the stack. Finally we hit the 'P'. This is the PrintChar operator. It pops the numstack and prints it as an ascii character. If we wanted to just print the number 65, we would use the small 'p' instead.
+In this case, we first see S going into a #. We are now in **Stack** mode.We then see a 6. now we have the number, "6". Then theres a 5. We haven't seen an ampersand yet, so the 5 is added to the end of the 6. We now have "65". Now here's the &. So we take that "65", make it the *number* 65 and throw it onto the stack. Finally we hit the 'P'. This is the PrintChar operator. It pops the stack and prints it as an ascii character. If we wanted to just print the number 65, we would use the small 'p' instead.
 
 Just to end off this little introduction, lets take a look at the classical "Hello World!" program. It get's a little bit large, but don't fret!
 ```Avarice
@@ -108,7 +110,7 @@ Here it is, the whole program to infinitely print "1". We start at S, move right
 
 Then we use "#1&#" to push 1 into the stack, before immediately popping and printing using 'p'. Next we see a structure that shows up in most loops: ">R>". This is a way to have a reset without moving direction, as the R wont feed back into itself, as mentioned above. We use this reset to forget that first 'R' right at the begining.
 
-Then we push 2 numbers into the stack. 1 and 0 go into the stack using number mode. Finally, we encounter a new operator. The Normal Mode '&'. This pops the top 2 values off the stack (here, thats 1 and 0) then acts as an arrow to that location. This '&' could be replaced by a line of arrows, but this is much faster both to write, read and compute - and you wont always be able to reach that point directly.
+Then we push 2 numbers into the stack. 1 and 0 go into the stack using **stack** mode. Finally, we encounter a new operator. The Normal Mode '&'. This pops the top 2 values off the stack (here, thats 1 and 0) then acts as an arrow to that location. This '&' could be replaced by a line of arrows, but this is much faster both to write, read and compute - and you wont always be able to reach that point directly.
 
 So we go back to the coordinates (1,0). Since the program is 0-indexed, that means the first row, second character. The '>'. We immediately hit that R, and now we have forgotten that we've done this before, and are in the same state we were in at the start of this, now with one more "1" in stdout.
 
@@ -117,29 +119,54 @@ But we don't always want out program to go infinitely - sometimes we want to sto
 ___
 ## **Operations**
 
-#### **Mode STD**
+Note that some operations are available in multiple modes.
+
+#### **Mode: STD**
 
 |Char|Name|Operation|
 |:-:|:-:|:-|
 | S| *"Start"*| Same as **Cross**. Used to denote the start of the program.|
 | T| *"Terminate"*| Ends the program, returning 1.|
-| P| *"PrintChar"* | Pops the numstack and prints the current value as an [ASCII](https://www.asciitable.com/asciifull.gif) character|
-| p | *"Print"*| Pops the numstack and prints as a number.|
+| P| *"PrintChar"* | Pops the stack and prints the current value as an [ASCII](https://www.asciitable.com/asciifull.gif) character|
+| p | *"Print"*| Pops the stack and prints as a number.|
 | \|| *"Pipe"* | Pushes the character above and below onto the opqueue|
-| - | *"Dash"* |  Pushes the character to it's left and right onto the opqueue|
-| + |*"Cross"* |  Pushes all surrounding characters onto the opqueue|
-| # | *"Hash"* | Enters Mode Number |
-| Y |*"Y-Gate"*| Acts like a **Dash**, but pops the numstack then checks if it is equal to 0 or None. If it is, acts like a  **v Arrow** as well. This can be used to generate loops.|
+| - | *"Dash"* | Pushes the character to it's left and right onto the opqueue|
+| + |*"Cross"* | Pushes all surrounding characters onto the opqueue|
+| Y |*"Y-Gate"*| Acts like a **Dash**, but pops the stack then checks if it is equal to 0 or None. If it is, acts like a  **v Arrow** as well. This can be used to generate loops.|
 | R | *"Reset"*| Sets the Visited HashSet to a blank HashSet. See the [Loops](#loops) section for more details.|
-| i | *"Input"*| Asks for input in stdout, then pushes to the numstack|
+| i | *"Input"*| Asks for input in stdout, then pushes to the stack|
 | & | *"GoTo"* | Pops the stack twice, then pushes the operation at that 2D Index to the opqueue|
 | ^ <br><......><br>v |"Arrow"|Acts like a **Pipe** or **Dash**, but only works in one direction. This is only useful in situations where the **Reset** operation is involved, as it can prevent infinite loops. <br>Also useful as a way to force a set of operations to happen in a certain order.|
+| M | *"Math"*| Enters [**Arithmetic**](#mode-arithmetic) mode. |
+| # | *"Hash"* | Enters [**Stack**](#mode-stack) mode. |
 ___
+
+#### **Mode: Stack**
+Available from STD: +, -, |
+|Char|Name|Operation|Representation|
+|:-:|:-:|:-|:-:|
+| D | *"Dupe"* | Duplicates the top value of the stack| [X] -> [X, X] |
+| 0..9 | *"Numbers"* | Begins forming a number out of digits. | n" " -> n"X"
+| & | *"Ampersand"*  | Finishes forming a number, and pushes the result onto the stack. This means that numbers can be pushed to the stack using `#[digits]&#`| n"X" + [ ]-> n"" + [X]|
+| C | *"Clear"*| Removes everything from the stack, cancels the current forming number, then enters [**STD**](#mode-std) mode. |n"12" + [X,Y,Z] -> n" " + [ ] |
+| # | *"Hash"* | Enters [**STD**](#mode-std) mode. | - |
+___
+
+#### **Mode: Arithmetic**
+|Char|Name|Operation|Equation|
+|:-:|:-:|:-|:-:|
+| + | *"Plus"*  | Pops the stack twice and pushes the sum. |[5,15] -> [20]|
+| - | *"Minus"* | Pops the stack twice and pushes the difference.|[15,5] -> [10]|
+| * | *"Times"* | Pops the stack twice and pushes the product.| [5,15] -> [75]|
+| / | *"Divide"*| Pops the stack twice and pushes the integer floored division.|[15,5] -> [03]|
+| M | *"Math"*| Enters [**STD**](#mode-std) mode.| - |
+
+
 ## **Return Codes**
-These are the codes returned by the interpret_program() function in Avarice's ```main.rs```.
+These are the codes returned by the interpret_program() function in Avarice's `main.rs`.
  
 | Code  |  Reason |
 | :---: | :------ |
 | **0** | The program's queue was empty - no operation could be found. This means the program ended without hitting a 'T' |
 | **1** | Program terminated by 'T'.|
-| **2** | The Maximum number of operations was reached. The maximum number can be set in the config in ```main.rs``` and is by default 65536. This exists to stop infinite loops. |
+| **2** | The Maximum number of operations was reached. The maximum number can be set in the config in `main.rs` and is by default 65536. This exists to stop infinite loops. |

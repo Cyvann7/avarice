@@ -88,7 +88,9 @@
 <li><a href="#order-of-operations"><strong>Order of Operations</strong></a></li>
 <li><a href="#loops"><strong>Loops</strong></a></li>
 <li><a href="#operations"><strong>Operations</strong></a>
-- <a href="#mode-std"><strong>Mode STD</strong></a></li>
+- <a href="#mode-std"><strong>Mode: STD</strong></a>
+- <a href="#mode-stack"><strong>Mode: Stack</strong></a>
+- <a href="#mode-arithmetic"><strong>Mode: Arithmetic</strong></a></li>
 <li><a href="#return-codes"><strong>Return Codes</strong></a></li>
 </ul>
 <br>
@@ -107,14 +109,14 @@
 <p>This program does nothing. The water flows from S to T in a straight line. Rather boring, really. So let's do something more interesting - printing a letter!</p>
 <pre><code class="language-Avarice"><code><div>S--#65&amp;#--P--T
 </div></code></code></pre>
-<p>Scary new operators! But first, let's talk about &quot;Modes&quot;. Avarice operations are divided into <em>&quot;modes&quot;</em> that change what a characters does based on which mode you are in. Here, we use the '#' to enter <strong>Number</strong> mode. In number mode, each digit you type is pushed into a number, then when a '&amp;' (&quot;Ampersand&quot;) symbol is encountered, it pushes the complete number into the numstack.</p>
+<p>Scary new operators! But first, let's talk about &quot;Modes&quot;. Avarice operations are divided into <em>&quot;modes&quot;</em> that change what a characters does based on which mode you are in. Here, we use the '#' to enter <strong>Stack</strong> mode. In stack mode, each digit you type is pushed into a number, then when a '&amp;' (&quot;Ampersand&quot;) symbol is encountered, it pushes the complete number into the stack.</p>
 <p>Note that since the program can progress in any order, the number itself can also be in any <a href="#order-of-operations">order</a>, that is:</p>
 <pre><code class="language-Avarice"><code><div>S        +-#
 #        | 1
 12    == S 2
  3&amp;#      &amp;3# &lt;- note that the ampersand is hit first here as there is an order that the items are popped from the opqueue
 </div></code></code></pre>
-<p>In this case, we first see S going into a #. We are now in number mode.We then see a 6. now we have the number, &quot;6&quot;. Then theres a 5. We haven't seen an ampersand yet, so the 5 is added to the end of the 6. We now have &quot;65&quot;. Now here's the &amp;. So we take that &quot;65&quot;, make it the <em>number</em> 65 and throw it onto the stack. Finally we hit the 'P'. This is the PrintChar operator. It pops the numstack and prints it as an ascii character. If we wanted to just print the number 65, we would use the small 'p' instead.</p>
+<p>In this case, we first see S going into a #. We are now in <strong>Stack</strong> mode.We then see a 6. now we have the number, &quot;6&quot;. Then theres a 5. We haven't seen an ampersand yet, so the 5 is added to the end of the 6. We now have &quot;65&quot;. Now here's the &amp;. So we take that &quot;65&quot;, make it the <em>number</em> 65 and throw it onto the stack. Finally we hit the 'P'. This is the PrintChar operator. It pops the stack and prints it as an ascii character. If we wanted to just print the number 65, we would use the small 'p' instead.</p>
 <p>Just to end off this little introduction, lets take a look at the classical &quot;Hello World!&quot; program. It get's a little bit large, but don't fret!</p>
 <pre><code class="language-Avarice"><code><div>S---+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
     |       |       |       |       |       |       |       |       |       |       |       |
@@ -153,12 +155,13 @@ First, lets look at an infinte loop, then build up to a conditional loop.</p>
 </div></code></code></pre>
 <p>Here it is, the whole program to infinitely print &quot;1&quot;. We start at S, move right into R, which does nothing now as the only thing it forgets that it can access is the '&gt;', which points back into 'R', which won't reset itself.</p>
 <p>Then we use &quot;#1&amp;#&quot; to push 1 into the stack, before immediately popping and printing using 'p'. Next we see a structure that shows up in most loops: &quot;&gt;R&gt;&quot;. This is a way to have a reset without moving direction, as the R wont feed back into itself, as mentioned above. We use this reset to forget that first 'R' right at the begining.</p>
-<p>Then we push 2 numbers into the stack. 1 and 0 go into the stack using number mode. Finally, we encounter a new operator. The Normal Mode '&amp;'. This pops the top 2 values off the stack (here, thats 1 and 0) then acts as an arrow to that location. This '&amp;' could be replaced by a line of arrows, but this is much faster both to write, read and compute - and you wont always be able to reach that point directly.</p>
+<p>Then we push 2 numbers into the stack. 1 and 0 go into the stack using <strong>stack</strong> mode. Finally, we encounter a new operator. The Normal Mode '&amp;'. This pops the top 2 values off the stack (here, thats 1 and 0) then acts as an arrow to that location. This '&amp;' could be replaced by a line of arrows, but this is much faster both to write, read and compute - and you wont always be able to reach that point directly.</p>
 <p>So we go back to the coordinates (1,0). Since the program is 0-indexed, that means the first row, second character. The '&gt;'. We immediately hit that R, and now we have forgotten that we've done this before, and are in the same state we were in at the start of this, now with one more &quot;1&quot; in stdout.</p>
 <p>But we don't always want out program to go infinitely - sometimes we want to stop it.</p>
 <hr>
 <h2 id="operations"><strong>Operations</strong></h2>
-<h4 id="mode-std"><strong>Mode STD</strong></h4>
+<p>Note that some operations are available in multiple modes.</p>
+<h4 id="mode-std"><strong>Mode: STD</strong></h4>
 <table>
 <thead>
 <tr>
@@ -181,12 +184,12 @@ First, lets look at an infinte loop, then build up to a conditional loop.</p>
 <tr>
 <td style="text-align:center">P</td>
 <td style="text-align:center"><em>&quot;PrintChar&quot;</em></td>
-<td style="text-align:left">Pops the numstack and prints the current value as an <a href="https://www.asciitable.com/asciifull.gif">ASCII</a> character</td>
+<td style="text-align:left">Pops the stack and prints the current value as an <a href="https://www.asciitable.com/asciifull.gif">ASCII</a> character</td>
 </tr>
 <tr>
 <td style="text-align:center">p</td>
 <td style="text-align:center"><em>&quot;Print&quot;</em></td>
-<td style="text-align:left">Pops the numstack and prints as a number.</td>
+<td style="text-align:left">Pops the stack and prints as a number.</td>
 </tr>
 <tr>
 <td style="text-align:center">|</td>
@@ -204,14 +207,9 @@ First, lets look at an infinte loop, then build up to a conditional loop.</p>
 <td style="text-align:left">Pushes all surrounding characters onto the opqueue</td>
 </tr>
 <tr>
-<td style="text-align:center">#</td>
-<td style="text-align:center"><em>&quot;Hash&quot;</em></td>
-<td style="text-align:left">Enters Mode Number</td>
-</tr>
-<tr>
 <td style="text-align:center">Y</td>
 <td style="text-align:center"><em>&quot;Y-Gate&quot;</em></td>
-<td style="text-align:left">Acts like a <strong>Dash</strong>, but pops the numstack then checks if it is equal to 0 or None. If it is, acts like a  <strong>v Arrow</strong> as well. This can be used to generate loops.</td>
+<td style="text-align:left">Acts like a <strong>Dash</strong>, but pops the stack then checks if it is equal to 0 or None. If it is, acts like a  <strong>v Arrow</strong> as well. This can be used to generate loops.</td>
 </tr>
 <tr>
 <td style="text-align:center">R</td>
@@ -221,7 +219,7 @@ First, lets look at an infinte loop, then build up to a conditional loop.</p>
 <tr>
 <td style="text-align:center">i</td>
 <td style="text-align:center"><em>&quot;Input&quot;</em></td>
-<td style="text-align:left">Asks for input in stdout, then pushes to the numstack</td>
+<td style="text-align:left">Asks for input in stdout, then pushes to the stack</td>
 </tr>
 <tr>
 <td style="text-align:center">&amp;</td>
@@ -233,9 +231,107 @@ First, lets look at an infinte loop, then build up to a conditional loop.</p>
 <td style="text-align:center">&quot;Arrow&quot;</td>
 <td style="text-align:left">Acts like a <strong>Pipe</strong> or <strong>Dash</strong>, but only works in one direction. This is only useful in situations where the <strong>Reset</strong> operation is involved, as it can prevent infinite loops. <br>Also useful as a way to force a set of operations to happen in a certain order.</td>
 </tr>
+<tr>
+<td style="text-align:center">M</td>
+<td style="text-align:center"><em>&quot;Math&quot;</em></td>
+<td style="text-align:left">Enters <a href="#mode-arithmetic"><strong>Arithmetic</strong></a> mode.</td>
+</tr>
+<tr>
+<td style="text-align:center">#</td>
+<td style="text-align:center"><em>&quot;Hash&quot;</em></td>
+<td style="text-align:left">Enters <a href="#mode-stack"><strong>Stack</strong></a> mode.</td>
+</tr>
 </tbody>
 </table>
 <hr>
+<h4 id="mode-stack"><strong>Mode: Stack</strong></h4>
+<p>Available from STD: +, -, |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Char</th>
+<th style="text-align:center">Name</th>
+<th style="text-align:left">Operation</th>
+<th style="text-align:center">Representation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">D</td>
+<td style="text-align:center"><em>&quot;Dupe&quot;</em></td>
+<td style="text-align:left">Duplicates the top value of the stack</td>
+<td style="text-align:center">[X] -&gt; [X, X]</td>
+</tr>
+<tr>
+<td style="text-align:center">0..9</td>
+<td style="text-align:center"><em>&quot;Numbers&quot;</em></td>
+<td style="text-align:left">Begins forming a number out of digits.</td>
+<td style="text-align:center">n&quot; &quot; -&gt; n&quot;X&quot;</td>
+</tr>
+<tr>
+<td style="text-align:center">&amp;</td>
+<td style="text-align:center"><em>&quot;Ampersand&quot;</em></td>
+<td style="text-align:left">Finishes forming a number, and pushes the result onto the stack. This means that numbers can be pushed to the stack using <code>#[digits]&amp;#</code></td>
+<td style="text-align:center">n&quot;X&quot; + [ ]-&gt; n&quot;&quot; + [X]</td>
+</tr>
+<tr>
+<td style="text-align:center">C</td>
+<td style="text-align:center"><em>&quot;Clear&quot;</em></td>
+<td style="text-align:left">Removes everything from the stack, cancels the current forming number, then enters <a href="#mode-std"><strong>STD</strong></a> mode.</td>
+<td style="text-align:center">n&quot;12&quot; + [X,Y,Z] -&gt; n&quot; &quot; + [ ]</td>
+</tr>
+<tr>
+<td style="text-align:center">#</td>
+<td style="text-align:center"><em>&quot;Hash&quot;</em></td>
+<td style="text-align:left">Enters <a href="#mode-std"><strong>STD</strong></a> mode.</td>
+<td style="text-align:center">-</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="mode-arithmetic"><strong>Mode: Arithmetic</strong></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Char</th>
+<th style="text-align:center">Name</th>
+<th style="text-align:left">Operation</th>
+<th style="text-align:center">Equation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">+</td>
+<td style="text-align:center"><em>&quot;Plus&quot;</em></td>
+<td style="text-align:left">Pops the stack twice and pushes the sum.</td>
+<td style="text-align:center">[5,15] -&gt; [20]</td>
+</tr>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center"><em>&quot;Minus&quot;</em></td>
+<td style="text-align:left">Pops the stack twice and pushes the difference.</td>
+<td style="text-align:center">[15,5] -&gt; [10]</td>
+</tr>
+<tr>
+<td style="text-align:center">*</td>
+<td style="text-align:center"><em>&quot;Times&quot;</em></td>
+<td style="text-align:left">Pops the stack twice and pushes the product.</td>
+<td style="text-align:center">[5,15] -&gt; [75]</td>
+</tr>
+<tr>
+<td style="text-align:center">/</td>
+<td style="text-align:center"><em>&quot;Divide&quot;</em></td>
+<td style="text-align:left">Pops the stack twice and pushes the integer floored division.</td>
+<td style="text-align:center">[15,5] -&gt; [03]</td>
+</tr>
+<tr>
+<td style="text-align:center">M</td>
+<td style="text-align:center"><em>&quot;Math&quot;</em></td>
+<td style="text-align:left">Enters <a href="#mode-std"><strong>STD</strong></a> mode.</td>
+<td style="text-align:center">-</td>
+</tr>
+</tbody>
+</table>
 <h2 id="return-codes"><strong>Return Codes</strong></h2>
 <p>These are the codes returned by the interpret_program() function in Avarice's <code>main.rs</code>.</p>
 <table>

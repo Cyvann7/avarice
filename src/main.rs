@@ -20,7 +20,7 @@ static MAX: u128 = 65536;
 #[derive(Debug)]
 enum State {
 	Normal,
-	Number,
+	Stack,
 	Arithmetic,
 }
 
@@ -241,7 +241,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 					}
 					'#' => { 
 						push_neighbours!(op.pos.0, op.pos.1);
-						program_state = State::Number;
+						program_state = State::Stack;
 					},
 					'i' => { 
 						print!("INPUT >>> ");
@@ -380,7 +380,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 					_ => {}
 				}
 			} 
-			State::Number => {
+			State::Stack => {
 				let opera = opstack.pop_front();
 				let opera = if let Some(x) = opera {
 					if visited.contains(&x) { continue;} else {x}
@@ -400,16 +400,13 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 					'|' => { 
 						push_neighbours_vertical!(op.pos.0, op.pos.1)
 					},
-
 					'+' => { 
 						push_neighbours!(op.pos.0, op.pos.1);
 					},
-
 					'0'..='9'=> {
 						numstack.push(op.op);
 						push_neighbours!(op.pos.0, op.pos.1);
 					},
-
 					'#' => {
 						program_state = State::Normal;
 						push_neighbours!(op.pos.0, op.pos.1);
@@ -425,14 +422,12 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 							panic!("See above.")
 						};
 					},
-
 					'C' => { 
 						numstack = Vec::new();
 						current_values = Vec::new();
 						push_neighbours!(op.pos.0, op.pos.1);
 						program_state = State::Normal;
 					},
-					'w' => {},
 					_ => {}
 				}
 			}
@@ -465,7 +460,7 @@ fn interpret_program(source_code: Vec<Vec<char>>, output_buffer: &mut String, ve
 					'/' => {
 						let num1 = current_values.pop().expect("/: Number Stack was empty when popped");
 						let num2 = current_values.pop().expect("/: Number Stack was empty when popped");
-						current_values.push(num1/num2);
+						current_values.push(num2/num1);
 						push_neighbours!(op.pos.0, op.pos.1);
 					},
 					'M' => {
